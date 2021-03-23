@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<body>
+<div id="access_Token"><%=data.access_token%></div>
+<div id="refresh_Token"><%=data.refresh_token%></div>
+<div id="use_num"><%=data.user_seq_no%></div>
+</body>
+<script>
+   opener.document.getElementById("accessToken").value =
+       document.getElementById("access_Token").textContent;
+   opener.document.getElementById("refreshToken").value =
+       document.getElementById("refresh_Token").textContent;
+   opener.document.getElementById("userSeqNumber").value =
+       document.getElementById("use_num").textContent;
+</script>
+</html>

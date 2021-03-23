@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>signup</title>
+</head>
+
+<body>
+    <div class="wrap">
+        <table>
+            <tr>
+                <td><label><strong>이메일</strong></label></td>
+                <td><input id="email" type="text" class="form-control" aria-label="Useremail" aria-describedby="basic-addon1"
+                        name="email"></td>
+            </tr>
+            <tr>
+                <td><label><strong>비밀번호&nbsp;&nbsp;</strong></label></td>
+                <td><input id="password" type="password" class="form-control" aria-label="Userpassword"
+                        aria-describedby="basic-addon1" name="password"></td>
+            </tr>
+            <tr>
+                <td><label><strong>이름</strong></label></td>
+                <td><input id="name" type="text" class="form-control" aria-label="Username" aria-describedby="basic-addon1"
+                        name="name"></td>
+            </tr>
+            <tr>
+                <td><label><strong>accessToken</strong></label></td>
+                <td><input id="accessToken" type="text" class="form-control" aria-label="Username" aria-describedby="basic-addon1"
+                        name="name"></td>
+            </tr>
+            <tr>
+                <td><label><strong>refreshToken</strong></label></td>
+                <td><input id="refreshToken" type="text" class="form-control" aria-label="Username" aria-describedby="basic-addon1"
+                        name="name"></td>
+            </tr>
+            <tr>
+                <td><label><strong>userSeqNumber</strong></label></td>
+                <td><input id="userSeqNumber" type="text" class="form-control" aria-label="Username" aria-describedby="basic-addon1"
+                        name="name"></td>
+            </tr>
+        </table>
+        <input id="authButton" type="button" value="인증" class="form-control submit-under container" name="user-info">
+        <input id="singupButton" type="button" value="가입" class="form-control submit-under container" name="user-info">
+    </div>
+    
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js" ></script>
+    
+    <script>
+        $("#authButton").click(function() {
+            //var apiKey = require('../config/apiKey');
+            var authWindow = window.open('about:blank');
+            authWindow.location = "https://testapi.openbanking.or.kr/oauth/2.0/authorize?" +
+            "response_type=code&"+
+            "client_id="+apiKey.clientId+"&"+  
+            "redirect_uri=http://localhost:3300/authorize&"+
+            "scope=login inquiry transfer&"+
+            "state=12345678901234567890123456789012&"+
+            "auth_type=0";
+        });
+        
+        $("#singupButton").click(function() {
+            var email = $("#email").val();
+            var password = $("#password").val();
+            var name = $("#name").val();
+            var accessToken = $("#accessToken").val();
+            var refreshToken = $("#refreshToken").val();
+            var userSeqNumber = $("#userSeqNumber").val();
+            
+            $.ajax({
+                url:'/signup',
+                type : 'POST',
+                data : {
+                    name : name,
+                    email : email,
+                    password : password,
+                    accessToken : accessToken,
+                    refreshToken : refreshToken,
+                    userSeqNumber : userSeqNumber
+                },
+                success:function(data){
+                    alert("등록 완료!");
+                }
+            })
+        });
+    </script>
+</body>
+
+</html>
