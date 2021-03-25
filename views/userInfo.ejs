@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>login</title>
+</head>
+
+<body>
+    <div class="wrap">
+        <% 
+        for(var i =0 ; i<res_list.length; i++) {
+            var accountAlias = res_list[i].account_alias;
+            var fintechUseNumber = res_list[i].fintech_use_num;
+        %>
+        <h1 class="b-val"><%=accountAlias%></h1>
+        <p class="g-text mb-10"><%=fintechUseNumber%></p>
+        <a href="">잔액조회</a>
+        <a href="">QR생성</a>   
+        <%
+            }
+        %>
+    </div>
+    
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js" ></script>
+    
+</body>
+
+</html>

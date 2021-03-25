@@ -12,13 +12,13 @@ module.exports = function(router, passport) { // router는 app 객체를 인자�
     });
     //===== 회원가입과 로그인 라우팅 함수 =====//
     router.route('/login').get(function(req, res) {
-        console.log('/signin 패스로 GET 요청됨.');
+        console.log('/login 패스로 GET 요청됨.');
 
-        res.redirect('/public/login.html');
+        res.render('login');
     });
 
     router.route('/login').post(passport.authenticate('local-login', {       
-        successRedirect: '/public/index.html',
+        successRedirect: '/userInfo',
         failureRedirect: '/login',
         failureFlash: true
     }));
@@ -73,5 +73,78 @@ module.exports = function(router, passport) { // router는 app 객체를 인자�
                 res.render('resultChild', {data : accessValues})
             }
         });
+    });
+    
+    router.route('/userInfo').get(function(req, res) {
+        console.log('/userInfo 패스로 GET 요청됨.');
+
+        if (!req.session.user) {
+            console.log("로그인이 안되어있습니다.");
+            res.render('login');
+        }
+        
+        var database = req.app.get('database');
+        var email = req.session.user.email;
+        if(database) {
+            database.UserModel.findByEmail(email, function(err, results) {
+                    if(err) {
+                       console.log('에러 발생.');
+                       res.writeHead(200, {"Content-Type":"text/html;charset=utf8"});
+                       res.write('<h1>에러 발생</h1>');
+                       res.end();
+                    } 
+
+                    if(results) {
+                        console.dir(results);
+
+                        var accessToken = results[0]._doc.accessToken;
+                        var userSeqNumber = results[0]._doc.userSeqNumber;
+
+                        var option = {
+                            method : "GET",
+                            url : "https://testapi.openbanking.or.kr/v2.0/user/me",
+                            headers : {
+                                'Authorization' : 'Bearer ' + accessToken
+                            },
+                            qs : {
+                                user_seq_no : userSeqNumber
+                            }
+                        }
+                        
+                        request(option, function(error, response, body) {
+                            var context = JSON.parse(body);
+                            userInfoRender(req, res, context);
+                        });
+                    } else {
+                        console.log('에러 발생.');
+                        res.writeHead(200, {"Content-Type":"text/html;charset=utf8"});
+                        res.write('<h1>조회된 사용자 정보 없음.</h1>');
+                        res.end();
+                    }
+                });
+        } else {
+            console.log('에러 발생.');
+            res.writeHead(200, {"Content-Type":"text/html;charset=utf8"});
+            res.write('<h1>데이터베이스 연결 안됨.</h1>');
+            res.end();
+        }
+    });
+}
+
+var userInfoRender = function(req, res, context) {
+    req.app.render('userInfo', context, function(err, html) {
+        if(err) {
+            console.error('뷰 렌더링 중 에러 발생 : ' + err.stack);
+            console.log('에러 발생.');
+
+            // 아래 코드를 함수로 만들어서 처리하면 더 깔끔함
+            res.writeHead(200, {"Content-Type":"text/html;charset=utf8"});
+            res.write('<h1>뷰 렌더링 중 에러 발생</h1>');
+            res.write('<br><p>' + err.stack + '<p>');
+            res.end();
+        }
+
+        res.writeHead(200, {"Content-Type":"text/html;charset=utf8"});
+        res.end(html);
     });
 }

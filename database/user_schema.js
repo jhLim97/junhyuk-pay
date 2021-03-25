@@ -74,6 +74,10 @@ Schema.createSchema = function(mongoose) {
     // mongoose에서 직접 메서드 추가 method이용
 
     // mongoose에서 직접 메서드 추가 static이용
+    UserSchema.static('findByEmail', function(email, callback) {
+        return this.find({email:email}, callback);
+    });
+    
     UserSchema.static('findAll', function(callback) {
         return this.find({}, callback);
     });
