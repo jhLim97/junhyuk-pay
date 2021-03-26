@@ -133,12 +133,18 @@ module.exports = function(router, passport) { // router는 app 객체를 인자�
     router.route('/balance').get(function(req, res) {
         console.log('/balance 패스로 GET 요청됨.');
         
+        res.render('balance');
+    });
+    
+    router.route('/balance').post(function(req, res) {
+        console.log('/balance 패스로 POST 요청됨.');
+        
         if (!req.session.user) {
             console.log("로그인이 안되어있습니다.");
             res.render('login');
         }
         
-        var fintechUseNumber = req.query.fintech_use_num;
+        var fintechUseNumber = req.body.fintech_use_num;
         var database = req.app.get('database');
         var email = req.session.user.email;
         if(database) {
@@ -170,9 +176,7 @@ module.exports = function(router, passport) { // router는 app 객체를 인자�
                         
                         request(option, function(error, response, body) {
                             var context = JSON.parse(body);
-                            console.log(context);
-                            console.log(context.balance_amt);
-                            balanceRender(req, res, context);
+                            res.json(context);
                         });
                     } else {
                         console.log('조회된 사용자 정보 없음.');
@@ -195,24 +199,6 @@ var userInfoRender = function(req, res, context) {
         if(err) {
             console.error('뷰 렌더링 중 에러 발생 : ' + err.stack);
             console.log('에러 발생.');
-
-            // 아래 코드를 함수로 만들어서 처리하면 더 깔끔함
-            res.writeHead(200, {"Content-Type":"text/html;charset=utf8"});
-            res.write('<h1>뷰 렌더링 중 에러 발생</h1>');
-            res.write('<br><p>' + err.stack + '<p>');
-            res.end();
-        }
-
-        res.writeHead(200, {"Content-Type":"text/html;charset=utf8"});
-        res.end(html);
-    });
-}
-
-var balanceRender = function(req, res, context) {
-    req.app.render('balance', context, function(err, html) {
-        if(err) {
-            console.error('뷰 렌더링 중 에러 발생 : ' + err.stack);
-            console.log('뷰 렌더링 에러 발생.');
 
             // 아래 코드를 함수로 만들어서 처리하면 더 깔끔함
             res.writeHead(200, {"Content-Type":"text/html;charset=utf8"});
