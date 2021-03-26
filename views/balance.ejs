@@ -9,11 +9,12 @@
 <body>
     <div class="wrap">
         <h1 class="b-val" id="balanceAmount"></h1>
+        <h3 class="b-val" id="transaction"></h3>
     </div> 
     
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js" ></script>
-    
     <script>
+        
     function getQueryStringObject() {
         var a = window.location.search.substr(1).split('&');
         if (a == "") return {};
@@ -27,19 +28,37 @@
         }
         return b;
     }
+        
     var qs = getQueryStringObject();
+        
     $.ajax({
         url:'/balance',
         type : 'POST',
         data : {
             fintech_use_num : qs.fintech_use_num
         },
-        success:function(data){
-            $("#balanceAmount").text(data.balance_amt)
+        success:function(datas){
+            $("#balanceAmount").text(datas.balance_amt)
+        }
+    })
+        
+    $.ajax({
+        url:'/transaction',
+        type : 'POST',
+        data : {
+            fintech_use_num : qs.fintech_use_num
+        },
+        success:function(datas){
+            for(var i = 1; i <= datas.res_list.length; i++){
+                var data = datas.res_list[i]
+                if (data.inout_type != "입금") {
+                    data.tran_amt = data.tran_amt * (-1);
+                }
+                $("#transaction").append(data.print_content + "   " + data.tran_amt + " | 잔액 : " + data.after_balance_amt + "<br>");
+            }
         }
     })
     </script>
-
 </body>
 
 </html>

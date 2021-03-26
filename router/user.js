@@ -192,6 +192,68 @@ module.exports = function(router, passport) { // router는 app 객체를 인자�
             res.end();
         }
     });
+    
+    router.route('/transaction').post(function(req, res) {
+        console.log('/transaction 패스로 POST 요청됨.');
+        
+        if (!req.session.user) {
+            console.log("로그인이 안되어있습니다.");
+            res.render('login');
+        }
+        
+        var fintechUseNumber = req.body.fintech_use_num;
+        var database = req.app.get('database');
+        var email = req.session.user.email;
+        if(database) {
+            database.UserModel.findByEmail(email, function(err, results) {
+                    if(err) {
+                       console.log('해당 이메일 DB 조회 중 에러 발생.');
+                       res.writeHead(200, {"Content-Type":"text/html;charset=utf8"});
+                       res.write('<h1>에러 발생</h1>');
+                       res.end();
+                    } 
+
+                    if(results) {
+                        console.dir(results);
+                        console.log(fintechUseNumber);
+
+                        var accessToken = results[0]._doc.accessToken;
+                        var option = {
+                            method : "GET",
+                            url : "https://testapi.openbanking.or.kr/v2.0/account/transaction_list/fin_num",
+                            headers : {
+                                'Authorization' : 'Bearer ' + accessToken
+                            },
+                            qs : {
+                                bank_tran_id : 'M202111802U' + (Math.floor(Date.now() / 10000) + 1),
+                                fintech_use_num : fintechUseNumber,
+                                inquiry_type : 'A',
+                                inquiry_base : 'D',
+                                from_date : '20210327',
+                                to_date : '20210327',
+                                sort_order : 'D',
+                                tran_dtime : '20190910101921'
+                            }
+                        }
+                        
+                        request(option, function(error, response, body) {
+                            var context = JSON.parse(body);
+                            res.json(context);
+                        });
+                    } else {
+                        console.log('조회된 사용자 정보 없음.');
+                        res.writeHead(200, {"Content-Type":"text/html;charset=utf8"});
+                        res.write('<h1>조회된 사용자 정보 없음.</h1>');
+                        res.end();
+                    }
+                });
+        } else {
+            console.log('DB 연결 중 에러 발생.');
+            res.writeHead(200, {"Content-Type":"text/html;charset=utf8"});
+            res.write('<h1>데이터베이스 연결 안됨.</h1>');
+            res.end();
+        }
+    });
 }
 
 var userInfoRender = function(req, res, context) {
