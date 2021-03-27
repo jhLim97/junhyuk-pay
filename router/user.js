@@ -254,6 +254,81 @@ module.exports = function(router, passport) { // router는 app 객체를 인자�
             res.end();
         }
     });
+    
+    router.route('/pay').get(function(req, res) {
+        console.log('/pay 패스로 GET 요청됨.');
+        
+        res.render('pay');
+    });
+    
+    router.route('/withdraw').post(function(req, res) {
+        console.log('/withdraw 패스로 POST 요청됨.');
+        
+        if (!req.session.user) {
+            console.log("로그인이 안되어있습니다.");
+            res.render('login');
+        }
+        
+        var fintechUseNumber = req.body.fintech_use_num;
+        var amount = req.body.tran_amt;
+        var database = req.app.get('database');
+        var email = req.session.user.email;
+        if(database) {
+            database.UserModel.findByEmail(email, function(err, results) {
+                    if(err) {
+                       console.log('해당 이메일 DB 조회 중 에러 발생.');
+                       res.writeHead(200, {"Content-Type":"text/html;charset=utf8"});
+                       res.write('<h1>에러 발생</h1>');
+                       res.end();
+                    } 
+
+                    if(results) {
+                        console.dir(results);
+
+                        var accessToken = results[0]._doc.accessToken;
+                        var option = {
+                            method : "POST",
+                            url : "https://testapi.openbanking.or.kr/v2.0/transfer/withdraw/fin_num",
+                            headers : {
+                                'Authorization' : 'Bearer ' + accessToken
+                            },
+                            json : {
+                                bank_tran_id : 'M202111802U' + (Math.floor(Date.now() / 10000) + 2),
+                                cntr_account_type : 'N',
+                                cntr_account_num : '100000000001',
+                                dps_print_content : '쇼핑몰환불',
+                                fintech_use_num : fintechUseNumber,
+                                wd_print_content : "오픈뱅킹출금",
+                                tran_amt : amount,
+                                tran_dtime : "20210328132400",
+                                req_client_name : "준혁페이-요청",
+                                req_client_fintech_use_num : fintechUseNumber,
+                                req_client_num : "HONGGILDONG1234",
+                                transfer_purpose : "TR",
+                                recv_client_name : "임준혁",
+                                recv_client_bank_code : "011",
+                                recv_client_account_num : "200000000001"
+                            }
+                        }
+                        
+                        request(option, function(error, response, body) {
+                            console.log(body);
+                            res.json(body);
+                        });
+                    } else {
+                        console.log('조회된 사용자 정보 없음.');
+                        res.writeHead(200, {"Content-Type":"text/html;charset=utf8"});
+                        res.write('<h1>조회된 사용자 정보 없음.</h1>');
+                        res.end();
+                    }
+                });
+        } else {
+            console.log('DB 연결 중 에러 발생.');
+            res.writeHead(200, {"Content-Type":"text/html;charset=utf8"});
+            res.write('<h1>데이터베이스 연결 안됨.</h1>');
+            res.end();
+        }
+    });
 }
 
 var userInfoRender = function(req, res, context) {
